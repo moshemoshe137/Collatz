@@ -31,38 +31,36 @@ def _best_collatz_plot_refresh(n, x_max):
 
 
 def collatz_plot(maximum, live=True, refresh=0):
-    plt.ion()
+    # plt.ion()
 
     fig, ax = plt.subplots()
 
     if live:
         x_list, y_list = np.empty(0, dtype='int64'), np.empty(0, dtype='int64')
         sc = ax.scatter(x_list, y_list, s=2)
-        plt.xlim(0, 10)
-        plt.ylim(0, 10)
         plt.draw()
-        last_refresh = 0
-        for MAX in range(1, maximum):
-            # x_list.append(MAX)
-            # y_list.append(collatz(MAX))
+        for MAX in range(1, maximum + 1):
             x_list = np.append(x_list, MAX)
             y_list = np.append(y_list, collatz(MAX))
             best_refresh = _best_collatz_plot_refresh(MAX, maximum) if refresh <= 0 else refresh
-            if MAX % best_refresh == 0 and (MAX - last_refresh) > 1:
+            if MAX % best_refresh == 0 or MAX == maximum:
                 last_refresh = MAX
-                sc.set_offsets(np.c_[x_list, y_list])
+                # set the new data with set_offsets. np.c_ puts it in the correct "data table" form
+                # sc.set_offsets(np.c_[x_list, y_list])
+                sc.set_offsets(np.transpose(np.vstack([x_list, y_list])))
                 ax.set_xlim((0, MAX))
-                ax.set_ylim((0, 1.05 * np.max(y_list) if y_list.size > 0 else 10))
-                plt.suptitle(f'Collatz Conjecture up to {MAX:,}')
-                plt.title(f'{MAX/maximum:.02%}, refresh={best_refresh:,}', loc='right')
-                fig.canvas.draw_idle()
-                plt.pause(10 ** -9)
+                ax.set_ylim((0, 1.05 * max(np.max(y_list), 1) if y_list.size > 0 else 10))
+                fig.suptitle(f'Collatz Conjecture up to {MAX:,}')
+                ax.set_title(f'{MAX / maximum:.02%}, refresh={best_refresh:,}', loc='right')
+                # fig.canvas.draw_idle()
+                plt.pause(10 ** -100)
     else:
         x_list = np.array(range(1, maximum))
         # todo: can we make this efficient?
         y_list = np.array([collatz(xi) for xi in x_list])
         sc = ax.scatter(x_list, y_list, s=2)
-        sc.set_offsets(np.c_[x_list, y_list])
+        # sc.set_offsets(np.c_[x_list, y_list])
+        sc.set_offsets(np.transpose(np.vstack([x_list, y_list])))
         ax.set_xlim((0, maximum))
         ax.set_ylim((0, 1.05 * np.max(y_list) if y_list.size > 0 else 10))
         fig.canvas.draw_idle()
@@ -78,4 +76,4 @@ def collatz_plot(maximum, live=True, refresh=0):
 # # sc = ax.scatter(np.array(range(2, MAX)), )
 # plt.show()
 # input("Press enter to quit")
-collatz_plot(10 ** 6, live=True, refresh=10**4)
+collatz_plot(10 ** 6, live=True)
