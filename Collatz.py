@@ -16,16 +16,16 @@ def collatz(n, verbose=False):
     return steps
 
 
-def _best_collatz_plot_refresh(n, x_max):
-    refresh = max(1, n // 1000)
-    if x_max < 50:
+def _best_collatz_plot_refresh(n, x_max, cutoff=50):
+    max_refresh = max(1, x_max // 100)
+    if x_max < cutoff:
         return 1
     else:
         # todo: this is NOT smooth. Find a better function that increases slowly enough (but quickly enough)
-        percent_done = max((n - 50) / (x_max - 50), 0)
+        percent_done = max((n - cutoff) / (x_max - cutoff), 0)
         # r = math.log(max(x_max // 1000, 1))
         # return int(math.exp(percent_done * r))
-        best_refresh = int(1 * ((1 - percent_done) ** (1 / 2)) + (x_max // 100) * (percent_done ** (1 / 2)))
+        best_refresh = round(1 * ((1 - percent_done) ** (1 / 2)) + max_refresh * (percent_done ** (1 / 2)))
         # print(f"{percent_done:.02%} --> {best_refresh}")
         return best_refresh
 
@@ -39,19 +39,20 @@ def collatz_plot(maximum, live=True, refresh=0):
         x_list, y_list = np.empty(0, dtype='int64'), np.empty(0, dtype='int64')
         sc = ax.scatter(x_list, y_list, s=2)
         plt.draw()
-        for MAX in range(1, maximum + 1):
-            x_list = np.append(x_list, MAX)
-            y_list = np.append(y_list, collatz(MAX))
-            best_refresh = _best_collatz_plot_refresh(MAX, maximum) if refresh <= 0 else refresh
-            if MAX % best_refresh == 0 or MAX == maximum:
-                last_refresh = MAX
+        for n in range(1, maximum + 1):
+            x_list = np.append(x_list, n)
+            y_list = np.append(y_list, collatz(n))
+            best_refresh = _best_collatz_plot_refresh(n, maximum) if refresh <= 0 else refresh
+            if n % best_refresh == 0 or n == maximum:
+                last_refresh = n
                 # set the new data with set_offsets. np.c_ puts it in the correct "data table" form
                 # sc.set_offsets(np.c_[x_list, y_list])
                 sc.set_offsets(np.transpose(np.vstack([x_list, y_list])))
-                ax.set_xlim((0, MAX))
+                ax.set_xlim((0, n))
                 ax.set_ylim((0, 1.05 * max(np.max(y_list), 1) if y_list.size > 0 else 10))
-                fig.suptitle(f'Collatz Conjecture up to {MAX:,}')
-                ax.set_title(f'{MAX / maximum:.02%}, refresh={best_refresh:,}', loc='right')
+                fig.suptitle(f'Collatz Conjecture up to {n:,}')
+                print(f'Collatz Conjecture up to {n:,}')
+                ax.set_title(f'{n / maximum:.02%}, refresh={best_refresh:,}', loc='right')
                 # fig.canvas.draw_idle()
                 plt.pause(10 ** -100)
     else:
@@ -69,11 +70,4 @@ def collatz_plot(maximum, live=True, refresh=0):
     input("Press Enter to quit")
 
 
-# input("Press enter to quit")
-# MAX = 10 ** 6
-# fig, ax = plt.subplots()
-# sc = ax.scatter(range(2, MAX), [collatz(i) for i in range(2, MAX)], s=2)
-# # sc = ax.scatter(np.array(range(2, MAX)), )
-# plt.show()
-# input("Press enter to quit")
-collatz_plot(10 ** 6, live=True)
+collatz_plot(10 ** 6 - 1, live=True)
