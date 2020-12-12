@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import cmath
+import copy
 
 
 def collatz(n, verbose=False):
@@ -14,6 +16,16 @@ def collatz(n, verbose=False):
         steps += 1
     print(n if verbose else "", end='\n' if verbose else '')
     return steps
+
+
+def complex_collatz(z, max_itter=10 ** 3):
+    steps = 0
+    while abs(z) < 2 * 10 ** 8 and steps <= max_itter:
+        if abs(z.imag) > 4 or z == 1:
+            return steps
+        z = (1 / 4) * (1 + 4 * z - (1 + 2 * z) * cmath.cos(math.pi * z))
+        steps += 1
+    return 0
 
 
 def _best_collatz_plot_refresh(n, x_max, cutoff=50):
@@ -70,4 +82,37 @@ def collatz_plot(maximum, live=True, refresh=0):
     input("Press Enter to quit")
 
 
-collatz_plot(10 ** 6 - 1, live=True)
+def complex_collatz_plot(x_min=-3, x_max=3, y_min=-2, y_max=2,
+                         steps=500, max_itter=10 ** 3):
+    my_cmap = copy.copy(plt.cm.get_cmap('hsv'))
+    my_cmap.set_under('k')
+    figure, axes = plt.subplots()
+    x_step = (x_max - x_min) / steps
+    y_step = (y_max - y_min) / steps
+    heatmap = np.empty(shape=(steps + 1, steps + 1))
+    fractal = axes.imshow(heatmap, cmap=my_cmap, vmin=0.5, vmax=10,
+                          extent=[x_min, x_max, y_min, y_max], origin='lower')
+    axes.set_xticks([x_min, (x_min + x_max) / 2, x_max])
+    axes.set_yticks([y_min, (y_min + y_max) / 2, y_max])
+    axes.set_xlim(x_min, x_max)
+    axes.set_ylim(y_min, y_max)
+    for y_counter in range(steps + 1):
+        row_map = np.empty(steps + 1)
+        for x_counter in range(steps + 1):
+            result = complex_collatz(
+                complex(x_min + x_step * x_counter,
+                        y_min + y_step * y_counter),
+                max_itter=max_itter
+            )
+            row_map[x_counter] = result
+        heatmap[y_counter] = row_map
+        if y_counter % 10 == 0 or y_counter == steps:
+            fractal.set_data(heatmap)
+            axes.set_title(
+                f"Resolution: {steps + 1} Accuracy: {max_itter}\nPercent: {(steps + 1) * y_counter / ((steps + 1) ** 2):.02%}")
+            plt.pause(10 ** -10)
+
+
+# collatz_plot((10 ** 6 - 1) // 2, live=True)
+print(complex_collatz(0.547+.611j))
+complex_collatz_plot(steps=1024, x_min=-10, x_max=10, y_max=1, y_min=-1)
