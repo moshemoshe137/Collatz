@@ -117,6 +117,6 @@ def complex_collatz_plot(x_min=-3, x_max=3, y_min=-2, y_max=2,
             plt.pause(10 ** -10)
 
 
-# collatz_plot((10 ** 6 - 1) // 2, live=True)
-print(complex_collatz(0.547 + .611j))
-complex_collatz_plot(steps=500, x_min=-2, x_max=2, y_max=2, y_min=-2, method='exp')
+collatz_plot((10 ** 6 - 1) // 2, live=True)
+# print(complex_collatz(0.547 + .611j))
+# complex_collatz_plot(steps=500, x_min=-2, x_max=2, y_max=2, y_min=-2, method='exp')
